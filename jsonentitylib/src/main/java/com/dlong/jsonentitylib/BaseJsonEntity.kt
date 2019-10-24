@@ -38,35 +38,30 @@ open class BaseJsonEntity : Serializable {
             }
             // 将private变量改成外部类可读
             f.isAccessible = true
-            // 获得父类
-            val sc = f.type.superclass
             // 判断变量类型
-            if (TypeMatch.isList(f.type)) {
-                // List 类型，去获取其中的泛型
-                val paramType = f.genericType as ParameterizedType
-                // 得到泛型里的class类型对象
-                val typeClz = paramType.actualTypeArguments[0] as Class<*>
-                f.set(this, getListFromJsonArray(typeClz, json.getJSONArray(name)))
-            } else if (TypeMatch.isString(f.type)) {
-                f.set(this, json.optString(name))
-            } else if (TypeMatch.isInt(f.type)) {
-                f.setInt(this, json.optInt(name))
-            } else if (TypeMatch.isLong(f.type)) {
-                f.setLong(this, json.optLong(name))
-            } else if (TypeMatch.isDouble(f.type)) {
-                f.setDouble(this, json.optDouble(name))
-            } else if (TypeMatch.isBoolean(f.type)) {
-                f.setBoolean(this, json.optBoolean(name))
-            } else if (sc != null && sc == BaseJsonEntity::class.java) {
-                // 同样继承了当前类的变量
-                val obj = f.type.newInstance()
-                val method = f.type.getMethod("setFromJson",
-                    JSONObject::class.java, Array<String>::class.java)
-                val array = emptyArray<String>()
-                method.invoke(obj, json.optJSONObject(name), array)
-                f.set(this, obj)
-            } else {
-                f.set(this, json.opt(name))
+            when {
+                TypeMatch.isString(f.type) -> f.set(this, json.optString(name))
+                TypeMatch.isInt(f.type) -> f.setInt(this, json.optInt(name))
+                TypeMatch.isLong(f.type) -> f.setLong(this, json.optLong(name))
+                TypeMatch.isDouble(f.type) -> f.setDouble(this, json.optDouble(name))
+                TypeMatch.isBoolean(f.type) -> f.setBoolean(this, json.optBoolean(name))
+                TypeMatch.isList(f.type) -> {
+                    // List 类型，去获取其中的泛型
+                    val paramType = f.genericType as ParameterizedType
+                    // 得到泛型里的class类型对象
+                    val typeClz = paramType.actualTypeArguments[0] as Class<*>
+                    f.set(this, getListFromJsonArray(typeClz, json.getJSONArray(name)))
+                }
+                TypeMatch.isBaseJsonEntity(f.type) -> {
+                    // 同样继承了当前类的变量
+                    val obj = f.type.newInstance()
+                    val method = f.type.getMethod("setFromJson",
+                        JSONObject::class.java, Array<String>::class.java)
+                    val array = emptyArray<String>()
+                    method.invoke(obj, json.optJSONObject(name), array)
+                    f.set(this, obj)
+                }
+                else -> f.set(this, json.opt(name))
             }
         }
     }
@@ -81,17 +76,14 @@ open class BaseJsonEntity : Serializable {
                 TypeMatch.isLong(clz) -> list.add(array.optLong(i))
                 TypeMatch.isDouble(clz) -> list.add(array.optDouble(i))
                 TypeMatch.isBoolean(clz) -> list.add(array.optBoolean(i))
-                else -> {
-                    val sc = clz.superclass
-                    if (sc != null && sc == BaseJsonEntity::class.java) {
-                        // 同样继承了当前类的变量
-                        val obj = clz.newInstance()
-                        val method = clz.getMethod("setFromJson",
-                            JSONObject::class.java, Array<String>::class.java)
-                        val temp = emptyArray<String>()
-                        method.invoke(obj, array.optJSONObject(i), temp)
-                        list.add(obj)
-                    }
+                TypeMatch.isBaseJsonEntity(clz) -> {
+                    // 同样继承了当前类的变量
+                    val obj = clz.newInstance()
+                    val method = clz.getMethod("setFromJson",
+                        JSONObject::class.java, Array<String>::class.java)
+                    val temp = emptyArray<String>()
+                    method.invoke(obj, array.optJSONObject(i), temp)
+                    list.add(obj)
                 }
             }
         }
@@ -120,25 +112,25 @@ open class BaseJsonEntity : Serializable {
             }
             // 将private变量改成外部类可读
             f.isAccessible = true
-            // 获得父类
-            val sc = f.type.superclass
             // 判断变量类型
-            if (TypeMatch.isList(f.type)) {
-                // List 类型，去获取其中的泛型
-                val paramType = f.genericType as ParameterizedType
-                // 得到泛型里的class类型对象
-                val typeClz = paramType.actualTypeArguments[0] as Class<*>
-                var value = f.get(this) as List<Any>?
-                if (value == null) value = emptyList()
-                json.put(name, toJsonArray(typeClz, value))
-            } else if (sc != null && sc == BaseJsonEntity::class.java) {
-                // 同样继承了当前类的变量
-                val instance = f.get(this)
-                val method = f.type.getMethod("toJson", Array<String>::class.java)
-                val temp: JSONObject = method.invoke(instance, emptyArray<String>()) as JSONObject
-                json.put(name, temp)
-            } else {
-                json.put(name, f.get(this))
+            when {
+                TypeMatch.isList(f.type) -> {
+                    // List 类型，去获取其中的泛型
+                    val paramType = f.genericType as ParameterizedType
+                    // 得到泛型里的class类型对象
+                    val typeClz = paramType.actualTypeArguments[0] as Class<*>
+                    var value = f.get(this) as List<Any>?
+                    if (value == null) value = emptyList()
+                    json.put(name, toJsonArray(typeClz, value))
+                }
+                TypeMatch.isBaseJsonEntity(f.type) -> {
+                    // 同样继承了当前类的变量
+                    val instance = f.get(this)
+                    val method = f.type.getMethod("toJson", Array<String>::class.java)
+                    val temp: JSONObject = method.invoke(instance, emptyArray<String>()) as JSONObject
+                    json.put(name, temp)
+                }
+                else -> json.put(name, f.get(this))
             }
         }
         return json
@@ -148,8 +140,7 @@ open class BaseJsonEntity : Serializable {
     private fun toJsonArray(clz: Class<*>, value: List<Any>): JSONArray {
         val array = JSONArray()
         for (i in value.indices) {
-            val sc = clz.superclass
-            if (sc != null && sc == BaseJsonEntity::class.java) {
+            if (TypeMatch.isBaseJsonEntity(clz)) {
                 // 同样继承了当前类的变量
                 val method = clz.getMethod("toJson", Array<String>::class.java)
                 val temp: JSONObject = method.invoke(value[i], emptyArray<String>()) as JSONObject

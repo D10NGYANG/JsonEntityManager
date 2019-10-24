@@ -1,5 +1,7 @@
 package com.dlong.jsonentitylib.utils
 
+import com.dlong.jsonentitylib.BaseJsonEntity
+
 /**
  * 类型识别工具
  *
@@ -34,5 +36,10 @@ object TypeMatch {
 
     fun isList(clz: Class<*>) : Boolean {
         return clz == List::class.java
+    }
+
+    fun isBaseJsonEntity(clz: Class<*>) : Boolean {
+        val sc = clz.superclass ?: return false
+        return sc == BaseJsonEntity::class.java
     }
 }
