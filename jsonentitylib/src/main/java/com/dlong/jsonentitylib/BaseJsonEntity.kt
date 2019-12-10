@@ -5,6 +5,7 @@ import com.dlong.jsonentitylib.utils.TypeMatch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.Serializable
+import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.lang.reflect.ParameterizedType
 
@@ -23,8 +24,13 @@ open class BaseJsonEntity : Serializable {
      */
     open fun setFromJson(json: JSONObject, vararg excludeNames: String) {
         val nameList = excludeNames.asList()
-        // 获取所有字段，不包含父类的
-        val fs = this.javaClass.declaredFields
+        // 获取所有字段，包含父类的
+        val fs: MutableList<Field> = mutableListOf()
+        var tempClass: Class<in Any>? = this.javaClass
+        while (tempClass != null) {
+            fs.addAll(tempClass.declaredFields)
+            tempClass = tempClass.superclass
+        }
         for (f in fs) {
             // 排除不符合的变量
             val annotation = f.getAnnotation(DLField::class.java) ?: continue
@@ -97,8 +103,13 @@ open class BaseJsonEntity : Serializable {
     open fun toJson(vararg excludeNames: String) : JSONObject {
         val json = JSONObject()
         val nameList = excludeNames.asList()
-        // 获取所有字段，不包含父类的
-        val fs = this.javaClass.declaredFields
+        // 获取所有字段，包含父类的
+        val fs: MutableList<Field> = mutableListOf()
+        var tempClass: Class<in Any>? = this.javaClass
+        while (tempClass != null) {
+            fs.addAll(tempClass.declaredFields)
+            tempClass = tempClass.superclass
+        }
         for (f in fs) {
             // 排除不符合的变量
             val annotation = f.getAnnotation(DLField::class.java) ?: continue
