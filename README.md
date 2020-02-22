@@ -78,6 +78,8 @@ class MainActivity : AppCompatActivity() {
 ```
 ## 混淆规则
 
-> # 实体转换工具
-> -keep class com.dlong.jsonentitylib.** {*;}
-> -dontwarn com.dlong.jsonentitylib.**
+``` 
+# 实体转换工具
+-keep class com.dlong.jsonentitylib.** {*;}
+-dontwarn com.dlong.jsonentitylib.**
+```
