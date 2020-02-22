@@ -7,12 +7,11 @@ import com.dlong.jsonentitylib.annotation.DLField
  * @author D10NG
  * @date on 2019-10-24 08:58
  */
-class Test2Info : BaseJsonEntity() {
-
+data class Test2Info (
     @DLField
-    var para1 = "0"
+    var para1: String = "0",
     @DLField
-    var para2 = 2
+    var para2: Int = 2,
     @DLField
-    var para3 = false
-}
+    var para3: Boolean = false
+) : BaseJsonEntity()
