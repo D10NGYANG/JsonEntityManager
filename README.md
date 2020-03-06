@@ -27,7 +27,7 @@
 data class TestInfo (
 
     // 使用nameInJson标注在JSON中对应的字段
-    @DLField(nameInJson = "int1")
+    @DLField(nameInJson = "int1", radixInJson = 16)
     var intT: Int = 0,
 
     @DLField
@@ -54,7 +54,9 @@ data class Test2Info (
     @DLField
     var para2: Int = 2,
     @DLField
-    var para3: Boolean = false
+    var para3: Boolean = false,
+    @DLField(radixInJson = 16)
+    var para4: List<Int> = listOf()
 ) : BaseJsonEntity()
 ```
 ## demo
@@ -66,13 +68,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // {"int1":3,"listT":["1a","2b","3c"],"stringT":"abcd","test2":{"para1":"efgh","para2":1234,"para3":true},"testList":[{"para1":"L0","para2":0,"para3":false},{"para1":"L1","para2":1,"para3":true}]}
-        val str = "{\"int1\":3,\"listT\":[\"1a\",\"2b\",\"3c\"],\"stringT\":\"abcd\",\"test2\":{\"para1\":\"efgh\",\"para2\":1234,\"para3\":true},\"testList\":[{\"para1\":\"L0\",\"para2\":0,\"para3\":false},{\"para1\":\"L1\",\"para2\":1,\"para3\":true}]}"
+        // {"int1":81,"listT":["1a","2b","3c"],"stringT":"abcd","test2":{"para1":"efgh","para2":1234,"para3":true,"para4":["1a","2b","3c"]},"testList":[{"para1":"L0","para2":0,"para3":false,"para4":["2a","3b","4c"]},{"para1":"L1","para2":1,"para3":true,"para4":["3a","4b","5c"]}]}
+        val str = "{\"int1\":81,\"listT\":[\"1a\",\"2b\",\"3c\"],\"stringT\":\"abcd\",\"test2\":{\"para1\":\"efgh\",\"para2\":1234,\"para3\":true,\"para4\":[\"1a\",\"2b\",\"3c\"]},\"testList\":[{\"para1\":\"L0\",\"para2\":0,\"para3\":false,\"para4\":[\"2a\",\"3b\",\"4c\"]},{\"para1\":\"L1\",\"para2\":1,\"para3\":true,\"para4\":[\"3a\",\"4b\",\"5c\"]}]}"
         val json = JSONObject(str)
 
         val test = TestInfo()
         test.setFromJson(json)
-
+        Log.e("测试", "data=$test")
         Log.e("测试", "json=${test.toJson()}")
     }
 }
