@@ -17,7 +17,7 @@
 
 ```kotlin
 	dependencies {
-	        implementation 'com.github.D10NGYANG:JsonEntityManager:1.1'
+	        implementation 'com.github.D10NGYANG:JsonEntityManager:1.2'
 	}
 ```
 ## 定义实体类继承BaseJsonEntity
@@ -79,7 +79,10 @@ class MainActivity : AppCompatActivity() {
 ## 混淆规则
 
 ``` 
-# 实体转换工具
 -keep class com.dlong.jsonentitylib.** {*;}
 -dontwarn com.dlong.jsonentitylib.**
+-keep class * extends com.dlong.jsonentitylib.BaseJsonEntity {*;}
+-keepclassmembers class * {
+    @com.dlong.jsonentitylib.annotation.DLField <fields>;
+}
 ```
