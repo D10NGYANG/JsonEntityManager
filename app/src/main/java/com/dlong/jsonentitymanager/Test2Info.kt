@@ -13,5 +13,7 @@ data class Test2Info (
     @DLField
     var para2: Int = 2,
     @DLField
-    var para3: Boolean = false
+    var para3: Boolean = false,
+    @DLField(radixInJson = 16)
+    var para4: List<Int> = listOf()
 ) : BaseJsonEntity()

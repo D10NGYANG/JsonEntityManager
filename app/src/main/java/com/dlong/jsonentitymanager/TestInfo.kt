@@ -10,7 +10,7 @@ import com.dlong.jsonentitylib.annotation.DLField
 data class TestInfo (
 
     // 使用nameInJson标注在JSON中对应的字段
-    @DLField(nameInJson = "int1")
+    @DLField(nameInJson = "int1", radixInJson = 16)
     var intT: Int = 0,
 
     @DLField

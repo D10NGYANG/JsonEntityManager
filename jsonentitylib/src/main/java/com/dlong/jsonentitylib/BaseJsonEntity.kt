@@ -47,7 +47,10 @@ open class BaseJsonEntity : Serializable {
             // 判断变量类型
             when {
                 TypeMatch.isString(f.type) -> f.set(this, json.optString(name))
-                TypeMatch.isInt(f.type) -> f.setInt(this, json.optInt(name))
+                TypeMatch.isInt(f.type) -> {
+                    // 增加特殊进制数值转为10进制Int型
+                    f.setInt(this, json.optString(name).toInt(annotation.radixInJson))
+                }
                 TypeMatch.isLong(f.type) -> f.setLong(this, json.optLong(name))
                 TypeMatch.isDouble(f.type) -> f.setDouble(this, json.optDouble(name))
                 TypeMatch.isBoolean(f.type) -> f.setBoolean(this, json.optBoolean(name))
@@ -56,7 +59,7 @@ open class BaseJsonEntity : Serializable {
                     val paramType = f.genericType as ParameterizedType
                     // 得到泛型里的class类型对象
                     val typeClz = paramType.actualTypeArguments[0] as Class<*>
-                    f.set(this, getListFromJsonArray(typeClz, json.getJSONArray(name)))
+                    f.set(this, getListFromJsonArray(annotation.radixInJson, typeClz, json.getJSONArray(name)))
                 }
                 TypeMatch.isBaseJsonEntity(f.type) -> {
                     // 同样继承了当前类的变量
@@ -73,12 +76,12 @@ open class BaseJsonEntity : Serializable {
     }
 
     // 获取array数据
-    private fun getListFromJsonArray(clz: Class<*>, array: JSONArray) : List<Any> {
+    private fun getListFromJsonArray(radixInJson: Int, clz: Class<*>, array: JSONArray) : List<Any> {
         val list: MutableList<Any> = arrayListOf()
         for (i in 0 until array.length()) {
             when {
                 TypeMatch.isString(clz) -> list.add(array.optString(i))
-                TypeMatch.isInt(clz) -> list.add(array.optInt(i))
+                TypeMatch.isInt(clz) -> list.add(array.optString(i).toInt(radixInJson))
                 TypeMatch.isLong(clz) -> list.add(array.optLong(i))
                 TypeMatch.isDouble(clz) -> list.add(array.optDouble(i))
                 TypeMatch.isBoolean(clz) -> list.add(array.optBoolean(i))
@@ -132,7 +135,7 @@ open class BaseJsonEntity : Serializable {
                     val typeClz = paramType.actualTypeArguments[0] as Class<*>
                     var value = f.get(this) as List<Any>?
                     if (value == null) value = emptyList()
-                    json.put(name, toJsonArray(typeClz, value))
+                    json.put(name, toJsonArray(annotation.radixInJson, typeClz, value))
                 }
                 TypeMatch.isBaseJsonEntity(f.type) -> {
                     // 同样继承了当前类的变量
@@ -141,6 +144,10 @@ open class BaseJsonEntity : Serializable {
                     val temp: JSONObject = method.invoke(instance, emptyArray<String>()) as JSONObject
                     json.put(name, temp)
                 }
+                TypeMatch.isInt(f.type) -> {
+                    // 增加特殊进制数值转为10进制Int型
+                    json.put(name, (f.get(this) as Int).toString(annotation.radixInJson))
+                }
                 else -> json.put(name, f.get(this))
             }
         }
@@ -148,16 +155,18 @@ open class BaseJsonEntity : Serializable {
     }
 
     // list转换为JSONArray
-    private fun toJsonArray(clz: Class<*>, value: List<Any>): JSONArray {
+    private fun toJsonArray(radixInJson: Int, clz: Class<*>, value: List<Any>): JSONArray {
         val array = JSONArray()
         for (i in value.indices) {
-            if (TypeMatch.isBaseJsonEntity(clz)) {
-                // 同样继承了当前类的变量
-                val method = clz.getMethod("toJson", Array<String>::class.java)
-                val temp: JSONObject = method.invoke(value[i], emptyArray<String>()) as JSONObject
-                array.put(temp)
-            } else {
-                array.put(value[i])
+            when {
+                TypeMatch.isBaseJsonEntity(clz) -> {
+                    // 同样继承了当前类的变量
+                    val method = clz.getMethod("toJson", Array<String>::class.java)
+                    val temp: JSONObject = method.invoke(value[i], emptyArray<String>()) as JSONObject
+                    array.put(temp)
+                }
+                TypeMatch.isInt(clz) -> array.put((value[i] as Int).toString(radixInJson))
+                else -> array.put(value[i])
             }
         }
         return array
