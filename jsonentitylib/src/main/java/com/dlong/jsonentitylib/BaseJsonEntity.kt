@@ -49,7 +49,8 @@ open class BaseJsonEntity : Serializable {
                 TypeMatch.isString(f.type) -> f.set(this, json.optString(name))
                 TypeMatch.isInt(f.type) -> {
                     // 增加特殊进制数值转为10进制Int型
-                    f.setInt(this, json.optString(name).toInt(annotation.radixInJson))
+                    val value = if (json.optString(name).isNullOrEmpty()) "0" else json.optString(name)
+                    f.setInt(this, value.toInt(annotation.radixInJson))
                 }
                 TypeMatch.isLong(f.type) -> f.setLong(this, json.optLong(name))
                 TypeMatch.isDouble(f.type) -> f.setDouble(this, json.optDouble(name))
@@ -81,7 +82,11 @@ open class BaseJsonEntity : Serializable {
         for (i in 0 until array.length()) {
             when {
                 TypeMatch.isString(clz) -> list.add(array.optString(i))
-                TypeMatch.isInt(clz) -> list.add(array.optString(i).toInt(radixInJson))
+                TypeMatch.isInt(clz) -> {
+                    // 增加特殊进制数值转为10进制Int型
+                    val value = if (array.optString(i).isNullOrEmpty()) "0" else array.optString(i)
+                    list.add(value.toInt(radixInJson))
+                }
                 TypeMatch.isLong(clz) -> list.add(array.optLong(i))
                 TypeMatch.isDouble(clz) -> list.add(array.optDouble(i))
                 TypeMatch.isBoolean(clz) -> list.add(array.optBoolean(i))
