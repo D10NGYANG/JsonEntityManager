@@ -1,4 +1,5 @@
 # JsonEntityManager
+[![](https://jitpack.io/v/D10NGYANG/JsonEntityManager.svg)](https://jitpack.io/#D10NGYANG/JsonEntityManager)
  用于解决JSON数据转换实体类的库文件
 # 使用方法
 你可以直接复制上面的代码进你的工程使用，也可以添加依赖库的形式
