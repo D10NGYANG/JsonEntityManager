@@ -18,7 +18,7 @@
 
 ```kotlin
 	dependencies {
-	        implementation 'com.github.D10NGYANG:JsonEntityManager:1.2'
+	        implementation 'com.github.D10NGYANG:JsonEntityManager:1.4'
 	}
 ```
 ## 定义实体类继承BaseJsonEntity

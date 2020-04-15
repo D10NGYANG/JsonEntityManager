@@ -65,10 +65,13 @@ open class BaseJsonEntity : Serializable {
                 TypeMatch.isBaseJsonEntity(f.type) -> {
                     // 同样继承了当前类的变量
                     val obj = f.type.newInstance()
-                    val method = f.type.getMethod("setFromJson",
-                        JSONObject::class.java, Array<String>::class.java)
-                    val array = emptyArray<String>()
-                    method.invoke(obj, json.optJSONObject(name), array)
+                    val jsonObject = json.optJSONObject(name)
+                    if (jsonObject != null) {
+                        val method = f.type.getMethod("setFromJson",
+                            JSONObject::class.java, Array<String>::class.java)
+                        val array = emptyArray<String>()
+                        method.invoke(obj, json.optJSONObject(name), array)
+                    }
                     f.set(this, obj)
                 }
                 else -> f.set(this, json.opt(name))
@@ -78,7 +81,7 @@ open class BaseJsonEntity : Serializable {
 
     // 获取array数据
     private fun getListFromJsonArray(radixInJson: Int, clz: Class<*>, array: JSONArray) : List<Any> {
-        val list: MutableList<Any> = arrayListOf()
+        val list: MutableList<Any> = mutableListOf()
         for (i in 0 until array.length()) {
             when {
                 TypeMatch.isString(clz) -> list.add(array.optString(i))
@@ -93,10 +96,13 @@ open class BaseJsonEntity : Serializable {
                 TypeMatch.isBaseJsonEntity(clz) -> {
                     // 同样继承了当前类的变量
                     val obj = clz.newInstance()
-                    val method = clz.getMethod("setFromJson",
-                        JSONObject::class.java, Array<String>::class.java)
-                    val temp = emptyArray<String>()
-                    method.invoke(obj, array.optJSONObject(i), temp)
+                    val jsonObject = array.optJSONObject(i)
+                    if (jsonObject != null) {
+                        val method = clz.getMethod("setFromJson",
+                            JSONObject::class.java, Array<String>::class.java)
+                        val temp = emptyArray<String>()
+                        method.invoke(obj, array.optJSONObject(i), temp)
+                    }
                     list.add(obj)
                 }
             }
